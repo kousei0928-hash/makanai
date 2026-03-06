@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>カート</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="brand">カート</div>
+        <nav class="nav">
+          <a href="/index.html">ホーム</a>
+        </nav>
+      </header>
+
+      <div class="panel">
+        <div id="cartItems"></div>
+
+        <div class="row" style="margin-top: 16px; align-items: flex-end;">
+          <label class="field">
+            <span>支払い方法</span>
+            <select id="paymentMethod">
+              <option value="card">カード（ダミー）</option>
+              <option value="cash">現金（店頭）</option>
+            </select>
+          </label>
+
+<button id="submitOrder">購入確定</button>
+        </div>
+
+        <p id="message"></p>
+      </div>
+    </div>
+
+        <footer class="bottom-menu">
+      <a href="/index.html">ホーム</a>
+      <a href="/cart.html" class="cart-link">カート<span class="cart-badge" id="cartBadge"></span></a>
+      <a href="/history.html">購入履歴</a>
+      <a href="/mypage.html">マイページ</a>
+    </footer>
+
+    <script src="/js/common.js" defer></script>
+    <script src="/js/cart.js" defer></script>
+  </body>
+</html>
