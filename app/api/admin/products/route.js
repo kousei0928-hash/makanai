@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/prisma';
-
-const STORE_MASTER = {
-  1: '北一食堂',
-  2: '大学食堂',
-  3: '南食堂'
-};
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET() {
   const products = await db.product.findMany({
@@ -23,10 +18,16 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const user = await getSessionUser();
+  if (!user || !user.storeId || !user.storeName) {
+    return NextResponse.json({ message: 'ログインしていないか、店舗が設定されていません。' }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
 
   const data = {
-    storeId: Number(body?.storeId),
+    storeId: user.storeId,
+    storeName: user.storeName,
     name: body?.name?.trim(),
     description: body?.description?.trim() || '',
     price: Number(body?.price),
@@ -35,9 +36,7 @@ export async function POST(request) {
     imageUrl: body?.imageUrl?.trim() || ''
   };
 
-  const storeName = STORE_MASTER[data.storeId];
-
-  if (!Number.isInteger(data.storeId) || !storeName || !data.name || !data.saleDate || !data.imageUrl) {
+  if (!data.name || !data.saleDate || !data.imageUrl) {
     return NextResponse.json({ message: '必須項目が不足しています。' }, { status: 400 });
   }
 
@@ -53,7 +52,7 @@ export async function POST(request) {
   const product = await db.product.create({
     data: {
       storeId: data.storeId,
-      storeName,
+      storeName: data.storeName,
       name: data.name,
       description: data.description,
       price: data.price,

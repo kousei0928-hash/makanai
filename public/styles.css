@@ -127,7 +127,7 @@ body {
 }
 
 .card-horizontal .card-horizontal-img {
-  width: 240px;
+  width: 60%;
   height: auto;
   min-height: 140px;
   flex-shrink: 0;
@@ -135,10 +135,13 @@ body {
 }
 
 .card-body {
-  padding: 14px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
 .muted {
@@ -157,7 +160,7 @@ button,
   border: none;
   background: var(--accent);
   color: #fff;
-  padding: 10px 14px;
+  padding: 10px 20px;
   border-radius: 10px;
   cursor: pointer;
   text-decoration: none;
@@ -231,7 +234,7 @@ textarea {
   color: #065f46;
 }
 
-.soldout-tag {
+  .soldout-tag {
   display: inline-block;
   margin: 0 0 10px;
   padding: 6px 10px;
@@ -241,7 +244,9 @@ textarea {
   letter-spacing: 0.04em;
   color: #fff;
   background: #dc2626;
+  width: fit-content;
 }
+
 
 @media (max-width: 720px) {
   .header {
@@ -257,6 +262,34 @@ textarea {
   .table {
     font-size: 14px;
   }
+}
+
+@media (max-width: 500px) {
+  button,
+  .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .soldout-tag {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #dc2626;
+  width: fit-content;
+}
+
+.card-sm {
+  padding: 5px 14px !important;
+  font-size: 12px !important;
+  width: fit-content;
+}
 }
 
 .bottom-menu {

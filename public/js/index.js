@@ -34,10 +34,9 @@ async function loadProducts(storeId = '') {
             <img class="card-horizontal-img" src="${p.imageUrl}" alt="${p.name}" />
             <div class="card-body">
               <h3 style="margin:0">${p.name}</h3>
-              <p class="muted" style="margin:0">${p.storeName} / 販売日: ${formatDate(p.saleDate)}</p>
               <p class="muted" style="margin:0">在庫: ${p.stock}</p>
               <p class="price" style="margin:6px 0">${formatYen(p.price)}</p>
-              ${isSoldOut ? '<p class="soldout-tag">売り切れ</p>' : `<a class="btn" href="/product.html?id=${p.id}">購入する</a>`}
+              ${isSoldOut ? '<p class="soldout-tag card-sm">売り切れ</p>' : `<a class="btn card-sm" href="/product.html?id=${p.id}">購入する</a>`}
             </div>
           </article>
         `;

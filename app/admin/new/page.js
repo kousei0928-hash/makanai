@@ -65,7 +65,6 @@ export default function AdminNewPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          storeId: '1',
           name: item.name,
           price,
           stock,
@@ -96,7 +95,6 @@ export default function AdminNewPage() {
       <h1>商品一括登録</h1>
       <div className="row" style={{ marginBottom: 16 }}>
         <Link href="/admin">商品一覧</Link>
-        <Link href="/admin/orders">注文一覧</Link>
       </div>
 
       <section className="panel">

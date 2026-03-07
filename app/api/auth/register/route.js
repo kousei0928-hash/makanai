@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/prisma';
 import { makeSessionCookie } from '@/lib/auth';
 
+const STORE_BY_EMAIL = {
+  'tyerukun0928@gmail.com': { storeId: 1, storeName: '北一食堂' },
+  'admin@example.com': { storeId: 3, storeName: '南食堂' },
+};
+
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => null);
@@ -24,8 +29,9 @@ export async function POST(request) {
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    const store = STORE_BY_EMAIL[email] || {};
     const user = await db.user.create({
-      data: { email, password: hashed, name }
+      data: { email, password: hashed, name, ...store }
     });
 
     const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
