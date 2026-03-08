@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { db } from '@/lib/prisma';
 import { validateStoreDayLimit } from '@/lib/orderRules';
 import { getSessionUser } from '@/lib/auth';
@@ -38,7 +39,10 @@ export async function POST(request) {
       const mergedItems = [...merged.entries()].map(([productId, quantity]) => ({ productId, quantity }));
 
       const ids = mergedItems.map((item) => item.productId);
-      const products = await tx.product.findMany({ where: { id: { in: ids } } });
+      // 行ロック付きで在庫を取得（同時購入による在庫マイナスを防止）
+      const products = await tx.$queryRaw`
+        SELECT * FROM "Product" WHERE id IN (${Prisma.join(ids)}) FOR UPDATE
+      `;
       const productMap = new Map(products.map((p) => [p.id, p]));
 
       const rows = [];

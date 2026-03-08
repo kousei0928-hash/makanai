@@ -3,39 +3,39 @@ async function initCart() {
   const message = document.getElementById('message');
   const submit = document.getElementById('submitOrder');
 
-  const cart = getCart();
-  if (!cart.length) {
+  // カートをAPIから取得
+  let items = [];
+  try {
+    const cartRes = await fetch('/api/cart');
+    const cartData = await cartRes.json();
+    items = cartData.items || [];
+  } catch {
+    message.className = 'error';
+    message.textContent = 'カートの取得に失敗しました。';
+    return;
+  }
+
+  if (!items.length) {
     cartItems.innerHTML = '<p>カートは空です。</p>';
     submit.disabled = true;
     return;
   }
 
-  const details = await Promise.all(
-    cart.map(async (item) => {
-      const res = await fetch(`/api/products/${item.productId}`);
-      const product = await res.json();
-      if (!res.ok) {
-        throw new Error(product.message || '商品情報の取得に失敗しました。');
-      }
-      return { ...item, product };
-    })
-  ).catch((e) => {
-    message.className = 'error';
-    message.textContent = e.message;
-    return null;
-  });
-
-  if (!details) return;
-
   function renderCart(details) {
     let total = 0;
+    let hasUnavailable = false;
     const itemsHtml = details
       .map((row) => {
         const sub = row.quantity * row.product.price;
         total += sub;
+        const soldOut = row.product.stock <= 0;
+        if (soldOut) hasUnavailable = true;
         return `
           <div class="history-item" style="position:relative;">
-            <img class="history-item-img" src="${row.product.imageUrl}" alt="${row.product.name}" />
+            <div style="position:relative;flex-shrink:0;">
+              <img class="history-item-img" src="${row.product.imageUrl}" alt="${row.product.name}" />
+              ${soldOut ? '<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;letter-spacing:0.1em;border-radius:8px;">SOLD OUT</div>' : ''}
+            </div>
             <div class="history-item-info">
               <p class="history-item-name">${row.product.name}</p>
               <p class="muted">${row.product.storeName} / ${formatDate(row.product.saleDate)}</p>
@@ -48,31 +48,32 @@ async function initCart() {
       .join('');
 
     cartItems.innerHTML = `
+      ${hasUnavailable ? '<p class="error">売り切れの商品があります。削除してから購入してください。</p>' : ''}
       ${itemsHtml}
       <div class="history-total">合計: <strong>${formatYen(total)}</strong></div>
     `;
 
+    submit.disabled = hasUnavailable;
+
     // 削除ボタンのイベント
     cartItems.querySelectorAll('.cart-remove-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const productId = Number(btn.dataset.productId);
-        const currentCart = getCart().filter((item) => Number(item.productId) !== productId);
-        saveCart(currentCart);
+        await fetch(`/api/cart?productId=${productId}`, { method: 'DELETE' });
         updateCartBadge();
 
-        if (!currentCart.length) {
+        const remaining = details.filter((d) => Number(d.product.id) !== productId);
+        if (!remaining.length) {
           cartItems.innerHTML = '<p>カートは空です。</p>';
           submit.disabled = true;
           return;
         }
-
-        const remaining = details.filter((d) => Number(d.product.id) !== productId);
         renderCart(remaining);
       });
     });
   }
 
-  renderCart(details);
+  renderCart(items);
 
   submit.addEventListener('click', async () => {
     submit.disabled = true;
@@ -81,28 +82,13 @@ async function initCart() {
 
     const paymentMethod = document.getElementById('paymentMethod').value;
 
-    // ログイン中のユーザー情報を取得
-    let buyerName = null;
-    let buyerEmail = null;
-    try {
-      const meRes = await fetch('/api/auth/me');
-      const meData = await meRes.json();
-      if (meData.user) {
-        buyerName = meData.user.name || null;
-        buyerEmail = meData.user.email || null;
-      }
-    } catch {}
-
-
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart,
-          paymentMethod,
-          buyerName,
-          buyerEmail
+          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          paymentMethod
         })
       });
       const data = await res.json();
@@ -111,8 +97,8 @@ async function initCart() {
         throw new Error(data.message || '注文に失敗しました。');
       }
 
-      saveCart([]);
-      clearCartCookie();
+      // 注文完了後、DBのカートをクリア
+      await fetch('/api/cart', { method: 'DELETE' });
       updateCartBadge();
 
       const historyKey = 'foodlose_order_history';

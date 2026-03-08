@@ -15,6 +15,7 @@ const PAYMENT_LABELS = { card: 'カード', cash: '現金' };
 
 export default function AdminPage() {
   const [products, setProducts] = useState([]);
+  const [storeName, setStoreName] = useState('');
   const [message, setMessage] = useState('');
 
   async function loadProducts() {
@@ -22,6 +23,7 @@ export default function AdminPage() {
     const data = await res.json();
     if (res.ok) {
       setProducts(data.products || []);
+      if (data.storeName) setStoreName(data.storeName);
     }
   }
 
@@ -46,6 +48,21 @@ export default function AdminPage() {
     loadProducts();
   }
 
+  async function publishAll() {
+    if (!confirm('未公開の商品をすべて公開しますか？')) return;
+
+    const res = await fetch('/api/admin/products/publish', { method: 'POST' });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setMessage(data.message || '公開に失敗しました。');
+      return;
+    }
+
+    setMessage(`${data.count}件の商品を公開しました。`);
+    loadProducts();
+  }
+
   async function deleteProduct(id) {
     if (!confirm(`商品ID ${id} を削除しますか？`)) return;
 
@@ -63,10 +80,74 @@ export default function AdminPage() {
 
   return (
     <main>
-      <h1>管理画面</h1>
-      <div className="row" style={{ marginBottom: 16 }}>
+      <h1>{storeName ? `${storeName} 管理画面` : '管理画面'}</h1>
+      <div className="row" style={{ marginBottom: 16, gap: 12 }}>
         <Link href="/admin/new">商品登録</Link>
+        <button
+          onClick={publishAll}
+          style={{
+            background: '#16a34a',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 24px',
+            borderRadius: 8,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontSize: 15
+          }}
+        >
+          未公開商品を一括公開
+        </button>
       </div>
+
+      {products.length > 0 && (
+        <div style={{
+          display: 'flex',
+          gap: 12,
+          marginBottom: 16,
+          flexWrap: 'wrap'
+        }}>
+          <div style={{
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: 10,
+            padding: '12px 20px',
+            textAlign: 'center',
+            minWidth: 120
+          }}>
+            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>在庫合計</p>
+            <p style={{ margin: '4px 0 0', fontSize: 28, fontWeight: 700, color: '#16a34a' }}>
+              {products.reduce((sum, p) => sum + p.stock, 0)}個
+            </p>
+          </div>
+          <div style={{
+            background: '#fefce8',
+            border: '1px solid #fde68a',
+            borderRadius: 10,
+            padding: '12px 20px',
+            textAlign: 'center',
+            minWidth: 120
+          }}>
+            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>商品数</p>
+            <p style={{ margin: '4px 0 0', fontSize: 28, fontWeight: 700, color: '#ca8a04' }}>
+              {products.length}件
+            </p>
+          </div>
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 10,
+            padding: '12px 20px',
+            textAlign: 'center',
+            minWidth: 120
+          }}>
+            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>売り切れ</p>
+            <p style={{ margin: '4px 0 0', fontSize: 28, fontWeight: 700, color: '#dc2626' }}>
+              {products.filter((p) => p.published && p.stock <= 0).length}件
+            </p>
+          </div>
+        </div>
+      )}
 
       <section>
         <h2>商品一覧</h2>
@@ -88,7 +169,7 @@ export default function AdminPage() {
                   position: 'absolute',
                   top: 10,
                   left: 10,
-                  background: p.stock > 0 ? '#16a34a' : '#dc2626',
+                  background: !p.published ? '#6b7280' : p.stock > 0 ? '#16a34a' : '#dc2626',
                   color: '#fff',
                   fontSize: 12,
                   fontWeight: 700,
@@ -96,7 +177,7 @@ export default function AdminPage() {
                   borderRadius: 6,
                   zIndex: 1
                 }}>
-                  {p.stock > 0 ? '公開中' : '売り切れ'}
+                  {!p.published ? '非公開' : p.stock > 0 ? '公開中' : '売り切れ'}
                 </div>
 
                 {/* 左: 写真 */}
@@ -104,7 +185,7 @@ export default function AdminPage() {
                   <img
                     src={p.imageUrl}
                     alt={p.name}
-                    style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: 8 }}
+                    style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', borderRadius: 8 }}
                   />
                   <p style={{ margin: '8px 0 2px', fontWeight: 700, fontSize: 16 }}>{formatYen(p.price)}</p>
                   <p style={{ margin: 0, fontSize: 12, color: '#6b7280' }}>注文時間：{formatDateTime(p.createdAt)}</p>

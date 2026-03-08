@@ -8,18 +8,30 @@
   </head>
   <body>
     <div class="container">
-      <header class="header">
-        <div class="brand">まかない弁当</div>
-        <nav class="nav">
-          <div class="store-filter">
-            <select id="storeSelect" class="store-select">
-              <option value="">食堂を選ぶ</option>
-              <option value="1">北一食堂</option>
-              <option value="2">大学食堂</option>
-              <option value="3">南食堂</option>
-            </select>
+      <header class="hero-header">
+        <!-- 1段目: ロゴ + ブランド + ユーザー情報 -->
+        <div class="hero-top">
+          <div class="hero-brand">
+            <span class="hero-brand-text">まかない</span>
           </div>
-        </nav>
+          <nav class="nav">
+            <!-- auth-link は common.js で追加 -->
+          </nav>
+        </div>
+
+        <!-- 2段目: 食堂選択 + 受け取り時間 -->
+        <div class="hero-mid">
+          <select id="storeSelect" class="hero-select">
+            <option value="">食堂を選ぶ</option>
+            <option value="1">北一食堂</option>
+            <option value="2">大学食堂</option>
+            <option value="3">南食堂</option>
+          </select>
+          <div class="hero-pickup">
+            <span class="hero-pickup-label">受け取り可能時間</span>
+            <span class="hero-pickup-time">19:45〜20:30</span>
+          </div>
+        </div>
       </header>
 
       <div id="storeStock" class="store-stock-bar"></div>

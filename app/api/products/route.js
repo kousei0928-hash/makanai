@@ -21,7 +21,7 @@ export async function GET(request) {
   const date = searchParams.get('date');
   const storeIdParam = searchParams.get('storeId');
 
-  const where = {};
+  const where = { published: true };
 
   if (date) {
     const start = new Date(`${date}T00:00:00.000Z`);
@@ -49,6 +49,9 @@ export async function GET(request) {
     where,
     orderBy: [{ saleDate: 'asc' }, { id: 'asc' }]
   });
+
+  // 在庫あり → 上、売り切れ → 下
+  products.sort((a, b) => (b.stock > 0 ? 1 : 0) - (a.stock > 0 ? 1 : 0));
 
   return NextResponse.json(products.map(pickProductListFields));
 }

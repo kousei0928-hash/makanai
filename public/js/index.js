@@ -31,8 +31,12 @@ async function loadProducts(storeId = '') {
         const isSoldOut = p.stock <= 0;
         return `
           <article class="card card-horizontal">
-            <img class="card-horizontal-img" src="${p.imageUrl}" alt="${p.name}" />
+            <div class="card-img-wrapper">
+              <img class="card-horizontal-img" src="${p.imageUrl}" alt="${p.name}" />
+              ${isSoldOut ? '<div class="soldout-overlay">SOLD OUT</div>' : ''}
+            </div>
             <div class="card-body">
+              <p class="muted" style="margin:0">${p.storeName}</p>
               <h3 style="margin:0">${p.name}</h3>
               <p class="muted" style="margin:0">在庫: ${p.stock}</p>
               <p class="price" style="margin:6px 0">${formatYen(p.price)}</p>
@@ -61,7 +65,7 @@ function initStoreFilter() {
 
 async function loadStoreStock() {
   const bar = document.getElementById('storeStock');
-  if (!bar) return;
+  const heroStock = document.getElementById('heroStock');
 
   try {
     const res = await fetch('/api/products');
@@ -69,17 +73,37 @@ async function loadStoreStock() {
     if (!res.ok) return;
 
     const stockByStore = {};
+    let totalStock = 0;
     for (const p of products) {
-      if (!stockByStore[p.storeName]) stockByStore[p.storeName] = 0;
-      stockByStore[p.storeName] += p.stock;
+      if (!stockByStore[p.storeId]) stockByStore[p.storeId] = { name: p.storeName, count: 0 };
+      stockByStore[p.storeId].count += p.stock;
+      totalStock += p.stock;
     }
 
-    bar.innerHTML = Object.entries(stockByStore)
-      .map(([name, count]) => {
-        const cls = count <= 3 ? 'stock-count low' : 'stock-count';
-        return `<div class="store-stock-chip">${name} <span class="${cls}">残り ${count} 個</span></div>`;
-      })
-      .join('');
+    // ヒーローヘッダー内の残り数
+    if (heroStock) {
+      heroStock.innerHTML = `まかない弁当残り <span class="stock-highlight">${totalStock}</span> 個です！`;
+      heroStock.classList.add('show');
+    }
+
+    // 食堂別チップ
+    if (bar) {
+      bar.innerHTML = Object.entries(stockByStore)
+        .map(([storeId, { name, count }]) => {
+          const cls = count <= 3 ? 'stock-count low' : 'stock-count';
+          return `<div class="store-stock-chip" data-store-id="${storeId}" style="cursor:pointer">${name} <span class="${cls}">残り ${count} 個</span></div>`;
+        })
+        .join('');
+
+      bar.querySelectorAll('.store-stock-chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const storeId = chip.dataset.storeId;
+          const select = document.getElementById('storeSelect');
+          if (select) select.value = storeId;
+          loadProducts(storeId);
+        });
+      });
+    }
   } catch {}
 }
 

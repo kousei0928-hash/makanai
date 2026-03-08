@@ -7,8 +7,16 @@ export async function GET(request) {
 
   let where;
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
   if (sessionUser) {
-    where = { userId: sessionUser.id };
+    where = {
+      userId: sessionUser.id,
+      createdAt: { gte: todayStart, lte: todayEnd }
+    };
   } else {
     const { searchParams } = new URL(request.url);
     const idsParam = searchParams.get('ids') || '';

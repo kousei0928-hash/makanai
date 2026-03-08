@@ -3,7 +3,13 @@ import { db } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 
 export async function GET() {
+  const user = await getSessionUser();
+  if (!user || !user.storeId) {
+    return NextResponse.json({ message: '権限がありません。' }, { status: 403 });
+  }
+
   const products = await db.product.findMany({
+    where: { storeId: user.storeId },
     orderBy: [{ saleDate: 'asc' }, { id: 'asc' }],
     include: {
       orderItems: {
@@ -14,7 +20,7 @@ export async function GET() {
     }
   });
 
-  return NextResponse.json({ products });
+  return NextResponse.json({ products, storeName: user.storeName });
 }
 
 export async function POST(request) {

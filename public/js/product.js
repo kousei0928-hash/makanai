@@ -20,7 +20,7 @@ async function init() {
 
     box.innerHTML = `
       <div class="row">
-        <img src="${p.imageUrl}" alt="${p.name}" style="width:min(420px,100%);border-radius:12px;" />
+        <img src="${p.imageUrl}" alt="${p.name}" style="width:min(420px,100%);aspect-ratio:4/3;object-fit:cover;border-radius:12px;" />
         <div style="flex:1; min-width:260px;">
           <p class="muted">storeId:${p.storeId} ${p.storeName} / 販売日: ${formatDate(p.saleDate)}</p>
           <h2>${p.name}</h2>
@@ -51,29 +51,20 @@ async function init() {
         return;
       }
 
-      const checkRes = await fetch('/api/cart/add', {
+      const addRes = await fetch('/api/cart/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: p.id, quantity: qty })
       });
-      const checkData = await checkRes.json();
+      const addData = await addRes.json();
 
-      if (!checkRes.ok) {
+      if (!addRes.ok) {
         messageEl.className = 'error';
-        messageEl.textContent = checkData.message || 'カート制約に違反しています。';
+        messageEl.textContent = addData.message || 'カートに追加できませんでした。';
         return;
       }
 
-      const cart = getCart();
-      const next = [...cart];
-      const idx = next.findIndex((item) => Number(item.productId) === p.id);
-      if (idx >= 0) {
-        next[idx].quantity += qty;
-      } else {
-        next.push({ productId: p.id, quantity: qty });
-      }
-      saveCart(next);
-
+      updateCartBadge();
       location.href = '/cart.html';
     });
   } catch (e) {
