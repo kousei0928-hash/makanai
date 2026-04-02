@@ -9,15 +9,46 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  storeId   Int?
-  storeName String?
-  createdAt DateTime @default(now())
-  orders    Order[]
-  cartItems CartItem[]
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  name         String
+  storeId      Int?
+  storeName    String?
+  lineUserId   String?  @unique
+  lineNotify   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  orders       Order[]
+  cartItems    CartItem[]
+  notifyStores LineNotifyStore[]
+  userTags     UserTag[]
+}
+
+model LineNotifyStore {
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  userName  String  @default("")
+  storeId   Int
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, storeId])
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  userTags  UserTag[]
+}
+
+model UserTag {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  tagId  Int
+  user   User   @relation(fields: [userId], references: [id])
+  tag    Tag    @relation(fields: [tagId], references: [id])
+
+  @@unique([userId, tagId])
 }
 
 model Product {

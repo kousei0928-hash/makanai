@@ -6,6 +6,21 @@ const submitBtn = document.getElementById('submitBtn');
 const toggleMode = document.getElementById('toggleMode');
 const message = document.getElementById('message');
 
+// URLパラメータからエラー表示
+const urlParams = new URLSearchParams(location.search);
+const lineError = urlParams.get('error');
+if (lineError) {
+  const errorMessages = {
+    line_cancelled: 'LINEログインがキャンセルされました。',
+    invalid_state: 'セッションが無効です。もう一度お試しください。',
+    line_token_failed: 'LINEログインに失敗しました。',
+    line_profile_failed: 'LINEプロフィールの取得に失敗しました。',
+    line_error: 'LINEログイン中にエラーが発生しました。',
+  };
+  message.className = 'error';
+  message.textContent = errorMessages[lineError] || 'エラーが発生しました。';
+}
+
 function updateMode() {
   if (isRegister) {
     formTitle.textContent = '新規登録';

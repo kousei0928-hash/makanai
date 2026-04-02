@@ -7,3 +7,8 @@ if (orderId) {
 } else {
   el.textContent = '注文が完了しました。';
 }
+
+// 2秒後に購入履歴ページへ自動遷移
+setTimeout(() => {
+  location.href = '/history.html';
+}, 2000);

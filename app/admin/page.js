@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 function formatDateTime(value) {
@@ -17,6 +16,8 @@ export default function AdminPage() {
   const [products, setProducts] = useState([]);
   const [storeName, setStoreName] = useState('');
   const [message, setMessage] = useState('');
+  const [showNotifyPanel, setShowNotifyPanel] = useState(false);
+  const [notifyTarget, setNotifyTarget] = useState(null);
 
   async function loadProducts() {
     const res = await fetch('/api/admin/products');
@@ -46,6 +47,30 @@ export default function AdminPage() {
 
     setMessage(`商品ID ${id} の在庫を更新しました。`);
     loadProducts();
+  }
+
+  async function openNotifyPanel() {
+    const res = await fetch('/api/admin/notify');
+    if (res.ok) {
+      setNotifyTarget(await res.json());
+    }
+    setShowNotifyPanel(true);
+  }
+
+  async function sendNotify() {
+    const tagLabel = notifyTarget ? `${notifyTarget.tag}（${notifyTarget.count}人）` : '';
+    if (!confirm(`${tagLabel}にLINE通知を送信しますか？`)) return;
+
+    const res = await fetch('/api/admin/notify', { method: 'POST' });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setMessage(data.message || '通知に失敗しました。');
+      return;
+    }
+
+    setMessage(`${data.sent}人（${data.tag}）にLINE通知を送信しました。`);
+    setShowNotifyPanel(false);
   }
 
   async function publishAll() {
@@ -82,7 +107,21 @@ export default function AdminPage() {
     <main>
       <h1>{storeName ? `${storeName} 管理画面` : '管理画面'}</h1>
       <div className="row" style={{ marginBottom: 16, gap: 12 }}>
-        <Link href="/admin/new">商品登録</Link>
+        <button
+          onClick={() => window.location.href = '/admin/new'}
+          style={{
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 24px',
+            borderRadius: 8,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontSize: 15
+          }}
+        >
+          商品登録
+        </button>
         <button
           onClick={publishAll}
           style={{
@@ -98,7 +137,70 @@ export default function AdminPage() {
         >
           未公開商品を一括公開
         </button>
+        <button
+          onClick={openNotifyPanel}
+          style={{
+            background: '#06C755',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 24px',
+            borderRadius: 8,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontSize: 15
+          }}
+        >
+          LINEで通知
+        </button>
       </div>
+
+      {showNotifyPanel && (
+        <div style={{
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: 12,
+          padding: 20,
+          marginBottom: 16
+        }}>
+          <h3 style={{ margin: '0 0 4px', fontSize: 16 }}>LINE通知を送信</h3>
+          <p style={{ margin: '0 0 12px', fontSize: 13, color: '#6b7280' }}>
+            「本日{products.reduce((sum, p) => sum + p.stock, 0)}個余りが出ました。」を
+            <strong>{notifyTarget ? `${notifyTarget.tag}（${notifyTarget.count}人）` : '...'}</strong>に送信します
+          </p>
+          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <button
+              onClick={sendNotify}
+              style={{
+                background: '#06C755',
+                color: '#fff',
+                border: 'none',
+                padding: '10px 24px',
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: 14
+              }}
+            >
+              送信
+            </button>
+            <button
+              onClick={() => setShowNotifyPanel(false)}
+              style={{
+                background: '#e5e7eb',
+                color: '#374151',
+                border: 'none',
+                padding: '10px 24px',
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: 14
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
 
       {products.length > 0 && (
         <div style={{

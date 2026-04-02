@@ -18,6 +18,22 @@
       <div class="panel" id="mypageContent" style="max-width: 480px; margin: 0 auto;">
         <p>読み込み中...</p>
       </div>
+
+      <!-- LINE通知設定 -->
+      <div class="panel" id="lineNotifyPanel" style="max-width: 480px; margin: 20px auto; display: none;">
+        <h3 style="margin: 0 0 12px">LINE通知設定</h3>
+        <div id="lineNotifyStatus" style="margin-bottom: 12px;"></div>
+        <div id="lineNotifyForm">
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px; cursor:pointer;">
+            <input type="checkbox" id="lineNotifyToggle" />
+            <span>LINE通知を受け取る</span>
+          </label>
+          <p style="font-size:13px; color:var(--muted); margin:0 0 10px">通知を受け取る食堂を選択：</p>
+          <div id="storeCheckboxes"></div>
+          <button id="saveLineNotify" style="margin-top: 12px;">保存</button>
+          <p id="lineNotifyMsg" style="margin: 8px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
     </div>
 
     <footer class="bottom-menu">

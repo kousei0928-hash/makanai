@@ -10,8 +10,8 @@ export async function POST(request) {
   const sessionUser = await getSessionUser();
   const body = await request.json().catch(() => null);
   const paymentMethod = body?.paymentMethod;
-  const buyerName = body?.buyerName?.trim() || null;
-  const buyerEmail = body?.buyerEmail?.trim() || null;
+  const buyerName = body?.buyerName?.trim() || sessionUser?.name || null;
+  const buyerEmail = body?.buyerEmail?.trim() || sessionUser?.email || null;
   const items = body?.items;
 
   if (!VALID_PAYMENT_METHODS.includes(paymentMethod)) {
