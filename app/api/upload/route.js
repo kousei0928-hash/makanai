@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
 export async function POST(request) {
   const formData = await request.formData();
@@ -15,20 +16,10 @@ export async function POST(request) {
   const ext = (file.name.match(/\.\w+$/) || ['.jpg'])[0];
   const filename = `${Date.now()}${ext}`;
 
-  const { error } = await supabase.storage
-    .from('product_images')
-    .upload(filename, buffer, {
-      contentType: file.type || 'image/jpeg',
-      upsert: false
-    });
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  await mkdir(uploadDir, { recursive: true });
 
-  if (error) {
-    return NextResponse.json({ message: `アップロード失敗: ${error.message}` }, { status: 500 });
-  }
+  await writeFile(path.join(uploadDir, filename), buffer);
 
-  const { data } = supabase.storage
-    .from('product_images')
-    .getPublicUrl(filename);
-
-  return NextResponse.json({ url: data.publicUrl });
+  return NextResponse.json({ url: `/uploads/${filename}` });
 }
