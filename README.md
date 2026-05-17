@@ -34,12 +34,12 @@
 | --- | --- | --- |
 | フロントエンド | **Next.js 14 (App Router) / React 18** | サーバーコンポーネント + Route Handler で API も同一プロジェクトに集約。Vercel への即時デプロイ。 |
 | バックエンド | **Next.js Route Handlers (Node.js)** | フロント / API 間の型・スキーマ・認証ロジックを共有でき、個人開発の保守コストを最小化。 |
-| データベース | **PostgreSQL + Prisma ORM** | リレーション + トランザクション + 行ロック（`SELECT ... FOR UPDATE`）が必要だったため。Prisma で型安全に。 |
+| データベース | **Neon (Serverless PostgreSQL) + Prisma ORM** | リレーション + トランザクション + 行ロック（`SELECT ... FOR UPDATE`）が必要だったため。Neon の pooled / direct 2 本立て接続を `DATABASE_URL` / `DIRECT_URL` で Prisma に渡し、serverless 環境でもマイグレーションを確実に動かす構成。 |
 | 認証 | **HMAC-SHA256 署名 Cookie + LINE Login (OAuth 2.0)** | 外部依存を増やさず、軽量かつ改ざん耐性のあるセッションを自前実装。LINE Login で UX を最大化。 |
 | 通知 | **LINE Messaging API (multicast / push)** | ターゲットユーザーが既に LINE を使っており、最も到達率の高いチャネル。 |
 | 画像 | **ローカルストレージ（`public/uploads/`）** | MVP 段階での外部依存・コストを排除。後で S3 / Cloudinary に差し替え可能な薄い実装に保った。 |
 
-> 当初は Supabase Storage を採用していましたが、**MVP 段階で「無料枠 / 自分でコントロール可能」を優先**してローカルストレージへ巻き戻しました（commit: `画像アップロードをローカルストレージに変更、Supabase依存を削除`）。技術的な惰性ではなく、運用フェーズに応じて構成を見直しています。
+> DB は **Neon（Serverless PostgreSQL）** を採用。MVP 段階では Supabase Storage で画像を扱っていましたが、依存とコストを切り詰めるためローカルストレージに巻き戻し、DB だけを Neon に集約しました（commit: `画像アップロードをローカルストレージに変更、Supabase依存を削除`）。技術選定を惰性で続けず、運用フェーズに応じて構成を見直しています。
 
 ---
 
@@ -229,8 +229,9 @@ npm install
 ### 2. 環境変数（`.env`）
 
 ```env
-DATABASE_URL="postgresql://..."
-DIRECT_URL="postgresql://..."
+# Neon (Serverless PostgreSQL) — pooled / direct の2本立て
+DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx-pooler.REGION.aws.neon.tech/DB?sslmode=require"
+DIRECT_URL="postgresql://USER:PASSWORD@ep-xxx.REGION.aws.neon.tech/DB?sslmode=require"
 
 # LINE Login（認証用）
 LINE_LOGIN_CHANNEL_ID="..."

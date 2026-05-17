@@ -16,7 +16,8 @@ async function main() {
       price: 900,
       saleDate: new Date('2026-03-07T00:00:00.000Z'),
       stock: 12,
-      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=900'
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=900',
+      published: true
     },
     {
       storeId: 1,
@@ -26,7 +27,8 @@ async function main() {
       price: 780,
       saleDate: new Date('2026-03-07T00:00:00.000Z'),
       stock: 8,
-      imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=900'
+      imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=900',
+      published: true
     },
     {
       storeId: 2,
@@ -36,7 +38,8 @@ async function main() {
       price: 1200,
       saleDate: new Date('2026-03-08T00:00:00.000Z'),
       stock: 15,
-      imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=900'
+      imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=900',
+      published: true
     }
   ];
 
